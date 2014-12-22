@@ -151,7 +151,7 @@ TS_Format(char *buf, ssize_t len, const struct timestamp *ts)
 		y -= 1000000000ULL;
 		x += 1;
 	}
-	assert(snprintf(buf, len, "%jd.%09jd", x, y) < len);
+	assert(snprintf(buf, len, "%llu.%09llu", x, y) < len);
 }
 
 /**********************************************************************
