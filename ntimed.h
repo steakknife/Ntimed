@@ -122,7 +122,7 @@ extern tb_adjust_f *TB_Adjust;
 
 void TS_Add(struct timestamp *ts, double dt);
 struct timestamp *TS_Nanosec(struct timestamp *storage,
-    int64_t sec, int64_t nsec);
+    intmax_t sec, intmax_t nsec);
 
 struct timestamp *TS_Double(struct timestamp *storage, double);
 double TS_Diff(const struct timestamp *t1, const struct timestamp *t2);
