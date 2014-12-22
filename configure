@@ -69,10 +69,17 @@ SRCS='
 	pll_std.c
 	time_sim.c
 	time_stuff.c
-	time_unix.c
 	todo.c
 	udp.c
 '
+
+case `uname` in
+Darwin)
+  SRCS="$SRCS time_osx.c"
+  ;;
+*)
+  SRCS="$SRCS time_unix.c"
+esac
 
 if [ -f /usr/share/mk/bsd.prog.mk ] ; then
 	echo "Found bsd.prog.mk, will use it."
