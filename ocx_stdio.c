@@ -52,7 +52,7 @@
  *
  * About this implementation:
  *
- * This is a very naiive implementation spitting things out to stdout/stderr,
+ * This is a very naive implementation spitting things out to stdout/stderr,
  * knowing that we are a single threaded program.
  *
  * XXX: Pull in sbufs to do it right.
@@ -79,7 +79,7 @@ getdst(enum ocx_chan chan)
 	if (chan == OCX_DEBUG)
 		return (stdout);
 	WRONG("Wrong ocx_chan");
-	return (NULL);
+	NEEDLESS_RETURN(NULL);
 }
 
 static void __match_proto__()
@@ -94,6 +94,7 @@ putv(struct ocx *ocx, enum ocx_chan chan, const char *fmt, va_list ap)
 		(void)vfprintf(dst, fmt, ap);
 	if (chan == OCX_DIAG)
 		vsyslog(LOG_ERR, fmt, ap2);
+	va_end(ap2);
 }
 
 /**********************************************************************

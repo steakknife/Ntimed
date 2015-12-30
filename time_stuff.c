@@ -65,7 +65,7 @@ ts_fixstorage(struct timestamp *storage)
 /**********************************************************************/
 
 struct timestamp *
-TS_Nanosec(struct timestamp *storage, intmax_t sec, intmax_t nsec)
+TS_Nanosec(struct timestamp *storage, int64_t sec, int64_t nsec)
 {
 
 	storage = ts_fixstorage(storage);
@@ -124,7 +124,7 @@ TS_Diff(const struct timestamp *t1, const struct timestamp *t2)
 
 /**********************************************************************/
 
-void
+int
 TS_SleepUntil(const struct timestamp *t)
 {
 	struct timestamp now;
@@ -132,17 +132,19 @@ TS_SleepUntil(const struct timestamp *t)
 
 	TB_Now(&now);
 	dt = TS_Diff(t, &now);
-	if (dt > 0.)
-		TB_Sleep(dt);
+	if (dt <= 0.)
+		return (0);
+	return (TB_Sleep(dt));
 }
 
 /**********************************************************************/
 
 void
-TS_Format(char *buf, ssize_t len, const struct timestamp *ts)
+TS_Format(char *buf, size_t len, const struct timestamp *ts)
 {
 	CHECK_OBJ_NOTNULL(ts, TIMESTAMP_MAGIC);
 	uint64_t x, y;
+	int i;
 
 	/* XXX: Nanosecond precision is enough for everybody. */
 	x = ts->sec;
@@ -151,7 +153,8 @@ TS_Format(char *buf, ssize_t len, const struct timestamp *ts)
 		y -= 1000000000ULL;
 		x += 1;
 	}
-	assert(snprintf(buf, len, "%jd.%09jd", x, y) < len);
+	i = snprintf(buf, len, "%jd.%09jd", (intmax_t)x, (intmax_t)y);
+	assert(i < (int)len);
 }
 
 /**********************************************************************
@@ -164,18 +167,19 @@ tb_Now(struct timestamp *storage)
 
 	(void)storage;
 	WRONG("No TB_Now");
-	return (NULL);
+	NEEDLESS_RETURN(NULL);
 }
 
 tb_now_f *TB_Now = tb_Now;
 
 /**********************************************************************/
 
-static void
+static int
 tb_Sleep(double dur)
 {
 	(void)dur;
 	WRONG("No TB_Sleep");
+	NEEDLESS_RETURN(-1);
 }
 
 tb_sleep_f *TB_Sleep = tb_Sleep;

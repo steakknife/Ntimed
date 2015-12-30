@@ -55,7 +55,7 @@ param_wrapline(struct ocx *ocx, const char *b)
 	Put(ocx, OCX_DIAG, "\t");
 	e = strchr(b, '\0');
 	while (b < e) {
-		if (!isspace(*b)) {
+		if (!isspace((int)*b)) {
 			Put(ocx, OCX_DIAG, "%c", *b);
 			b++;
 			n++;
@@ -72,7 +72,7 @@ param_wrapline(struct ocx *ocx, const char *b)
 		} else {
 			assert (*b == ' ');
 			for (w = b + 1; w < e; w++)
-				if (isspace(*w))
+				if (isspace((int)*w))
 					break;
 			if (n + (w - b) < wrap_at) {
 				Put(ocx, OCX_DIAG, "%.*s", (int)(w - b), b);
@@ -121,7 +121,8 @@ Param_Tweak(struct ocx *ocx, const char *arg)
 		Fail(ocx, 0, "Stopping after parameter query.\n");
 	}
 
-	l = q - arg;
+	assert (q >= arg);
+	l = (unsigned)(q - arg);
 
 	TAILQ_FOREACH(pt, &param_tbl, list) {
 		if (strlen(pt->name) != l)

@@ -49,7 +49,6 @@
 
 #include "ntimed.h"
 
-struct combine_delta;
 
 struct cd_stat {
 	double				x;
@@ -201,7 +200,7 @@ CD_AddSource(struct combine_delta *cd, const char *name1, const char *name2)
 	ALLOC_OBJ(cs, CD_SOURCE_MAGIC);
 	AN(cs);
 	cs->cd = cd;
-	cs->low = cs->mid = cs->high = NAN;
+	cs->low = cs->mid = cs->high = nan("");
 	TAILQ_INSERT_TAIL(&cd->head, cs, list);
 
 	INIT_OBJ(&cs->combiner, COMBINER_MAGIC);

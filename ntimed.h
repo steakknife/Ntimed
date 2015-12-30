@@ -38,6 +38,7 @@
 #include "ntimed_tricks.h"
 
 struct todolist;
+struct udp_socket;
 
 /* ocx_*.c -- Operational Context *************************************/
 
@@ -88,6 +89,10 @@ extern pll_f *PLL;
 
 void PLL_Init(void);
 
+/* suckaddr.c -- Sockaddr utils ***************************************/
+
+int SA_Equal(const void *sa1, size_t sl1, const void *sa2, size_t sl2);
+
 /* time_sim.c -- Simulated timebase ***********************************/
 
 extern double Time_Sim_delta;
@@ -108,7 +113,7 @@ struct timestamp {
 	uint64_t	frac;
 };
 
-typedef void tb_sleep_f(double dur);
+typedef int tb_sleep_f(double dur);
 typedef struct timestamp *tb_now_f(struct timestamp *);
 typedef void tb_step_f(struct ocx *, double offset);
 typedef void tb_adjust_f(struct ocx *, double offset, double duration,
@@ -126,16 +131,16 @@ struct timestamp *TS_Nanosec(struct timestamp *storage,
 
 struct timestamp *TS_Double(struct timestamp *storage, double);
 double TS_Diff(const struct timestamp *t1, const struct timestamp *t2);
-void TS_SleepUntil(const struct timestamp *);
-void TS_Format(char *buf, ssize_t len, const struct timestamp *ts);
+int TS_SleepUntil(const struct timestamp *);
+void TS_Format(char *buf, size_t len, const struct timestamp *ts);
 
 void TS_RunTest(struct ocx *ocx);
 
 /* todo.c -- todo-list scheduler **************************************/
 
-struct todo;	// private
 
 enum todo_e {
+	TODO_INTR	= -2,	// Signal received
 	TODO_FAIL	= -1,	// Break out of TODO_Run()
 	TODO_OK		=  0,
 	TODO_DONE	=  1,	// Stop repeating me
@@ -145,11 +150,16 @@ typedef enum todo_e todo_f(struct ocx *, struct todolist *, void *priv);
 
 struct todolist *TODO_NewList(void);
 
-struct todo *TODO_ScheduleRel(struct todolist *, todo_f *func, void *priv,
-    double when, double repeat, const char *fmt, ...);
-struct todo *TODO_ScheduleAbs(struct todolist *, todo_f *func, void *priv,
-    const struct timestamp *when, double repeat, const char *fmt, ...);
+uintptr_t TODO_ScheduleRel(struct todolist *,
+    todo_f *func, void *priv,
+    double when, double repeat,
+    const char *fmt, ...) __printflike(6, 7);
+uintptr_t TODO_ScheduleAbs(struct todolist *,
+    todo_f *func, void *priv,
+    const struct timestamp *when, double repeat,
+    const char *fmt, ...) __printflike(6, 7);
 enum todo_e TODO_Run(struct ocx *ocx, struct todolist *);
+void TODO_Cancel(struct todolist *tdl, uintptr_t *);
 
 /* combine_delta.c -- Source Combiner based on delta-pdfs *************/
 

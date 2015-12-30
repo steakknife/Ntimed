@@ -31,6 +31,7 @@
  */
 
 #include <errno.h>
+#include <signal.h>
 #include <stdio.h>
 #include <sys/socket.h>
 
@@ -44,15 +45,25 @@
 #undef PARAM_TABLE_NAME
 #undef PARAM_CLIENT
 
+static volatile sig_atomic_t restart = 1;
+
+static void __match_proto__()
+sig_hup(int siginfo)
+{
+	(void)signal(SIGHUP, sig_hup);
+	(void)siginfo;
+	restart = 1;
+}
+
 int
 main_client(int argc, char *const *argv)
 {
 	int ch;
 	struct ntp_peer *np;
-	struct ntp_peerset *npl;
+	struct ntp_peerset *nps;
 	struct todolist *tdl;
 	struct combine_delta *cd;
-	int fd;
+	struct udp_socket *usc;
 	int npeer = 0;
 
 	setbuf(stdout, NULL);
@@ -63,7 +74,7 @@ main_client(int argc, char *const *argv)
 
 	PLL_Init();
 
-	npl = NTP_PeerSet_New(NULL);
+	nps = NTP_PeerSet_New(NULL);
 
 	Param_Register(client_param_table);
 	NF_Init();
@@ -87,7 +98,7 @@ main_client(int argc, char *const *argv)
 	argv += optind;
 
 	for (ch = 0; ch < argc; ch++)
-		npeer += NTP_PeerSet_Add(NULL, npl, argv[ch]);
+		npeer += NTP_PeerSet_Add(NULL, nps, argv[ch]);
 	if (npeer == 0)
 		Fail(NULL, 0, "No NTP peers found");
 
@@ -96,20 +107,27 @@ main_client(int argc, char *const *argv)
 
 	Param_Report(NULL, OCX_TRACE);
 
-	fd = UdpTimedSocket(NULL, AF_INET);
-	if (fd < 0)
+	usc = UdpTimedSocket(NULL);
+	if (usc == NULL)
 		Fail(NULL, errno, "Could not open UDP socket");
 
 	cd = CD_New();
 
-	NTP_PeerSet_Foreach(np, npl) {
+	NTP_PeerSet_Foreach(np, nps) {
 		NF_New(np);
 		np->combiner = CD_AddSource(cd, np->hostname, np->ip);
 	}
 
-	NTP_PeerSet_Poll(NULL, npl, fd, tdl);
-
-	(void)TODO_Run(NULL, tdl);
+	do {
+		if (restart) {
+			Debug(NULL, "RESTART\n");
+			TB_generation++;
+			NTP_PeerSet_Poll(NULL, nps, usc, tdl);
+			restart = 0;
+		}
+		(void)signal(SIGHUP, sig_hup);
+		(void)TODO_Run(NULL, tdl);
+	} while (restart);
 
 	return (0);
 }
