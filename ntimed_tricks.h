@@ -112,7 +112,7 @@
  *
  * Define your struct like this:
  *	struct foobar {
- *		unsigned		magic;
+ *		uint32_t		magic;
  *	#define FOOBAR_MAGIC		0x23923092
  *		...
  *	}
@@ -127,7 +127,7 @@
 
 #define INIT_OBJ(to, type_magic)					\
 	do {								\
-		(void)memset(to, 0, sizeof *to);			\
+		(void)memset((to), 0, sizeof *(to));			\
 		(to)->magic = (type_magic);				\
 	} while (0)
 
@@ -149,19 +149,19 @@
 
 #define CHECK_OBJ(ptr, type_magic)					\
 	do {								\
-		assert((ptr)->magic == type_magic);			\
+		assert((ptr)->magic == (type_magic));			\
 	} while (0)
 
 #define CHECK_OBJ_NOTNULL(ptr, type_magic)				\
 	do {								\
 		assert((ptr) != NULL);					\
-		assert((ptr)->magic == type_magic);			\
+		assert((ptr)->magic == (type_magic));			\
 	} while (0)
 
 #define CHECK_OBJ_ORNULL(ptr, type_magic)				\
 	do {								\
 		if ((ptr) != NULL)					\
-			assert((ptr)->magic == type_magic);		\
+			assert((ptr)->magic == (type_magic));		\
 	} while (0)
 
 #define CAST_OBJ(to, from, type_magic)					\

@@ -106,11 +106,10 @@ NTP_Peer_Poll(struct ocx *ocx, const struct udp_socket *usc,
     const struct ntp_peer *np, double tmo)
 {
 	char buf[100];
-	size_t len;
 	struct sockaddr_storage rss;
 	socklen_t rssl;
-	ssize_t l;
-	int i;
+	size_t tx_expected_len;
+	ssize_t tx_actual_len, len_rx;
 	struct timestamp t0, t1, t2;
 	double d;
 
@@ -118,12 +117,12 @@ NTP_Peer_Poll(struct ocx *ocx, const struct udp_socket *usc,
 	CHECK_OBJ_NOTNULL(np, NTP_PEER_MAGIC);
 	assert(tmo > 0.0 && tmo <= 1.0);
 
-	len = NTP_Packet_Pack(buf, sizeof buf, np->tx_pkt);
+	tx_expected_len = NTP_Packet_Pack(buf, sizeof buf, np->tx_pkt);
 
-	l = Udp_Send(ocx, usc, np->sa, np->sa_len, buf, len);
-	if (l != (ssize_t)len) {
-		Debug(ocx, "Tx peer %s %s got %zd (%s)\n",
-		    np->hostname, np->ip, l, strerror(errno));
+	tx_actual_len = Udp_Send(ocx, usc, np->sa, np->sa_len, buf, tx_expected_len);
+	if (tx_actual_len < 0 || (size_t)tx_actual_len != tx_expected_len) {
+		Debug(ocx, "Tx peer %s %s got %jd byte(s) (%s), expected %zd byte(s)\n",
+		    np->hostname, np->ip, tx_actual_len, strerror(errno), tx_expected_len);
 		return (0);
 	}
 
@@ -133,18 +132,16 @@ NTP_Peer_Poll(struct ocx *ocx, const struct udp_socket *usc,
 		(void)TB_Now(&t1);
 		d = TS_Diff(&t1, &t0);
 
-		i = UdpTimedRx(ocx, usc, np->sa->sa_family, &rss, &rssl, &t2,
+		len_rx = UdpTimedRx(ocx, usc, np->sa->sa_family, &rss, &rssl, &t2,
 		    buf, sizeof buf, tmo - d);
 
-		if (i == 0)
+		if (len_rx == 0)
 			return (0);
-
-		if (i < 0)
+		else if (len_rx < 0)
 			Fail(ocx, 1, "Rx failed\n");
-
-		if (i != 48) {
-			Debug(ocx, "Rx peer %s %s got len=%d\n",
-			    np->hostname, np->ip, i);
+		else if (len_rx != 48) {
+			Debug(ocx, "Rx peer %s %s got len=%zd byte(s)\n",
+			    np->hostname, np->ip, len_rx);
 			continue;
 		}
 
@@ -152,7 +149,7 @@ NTP_Peer_Poll(struct ocx *ocx, const struct udp_socket *usc,
 		if (!SA_Equal(np->sa, np->sa_len, &rss, rssl))
 			continue;
 
-		AN(NTP_Packet_Unpack(np->rx_pkt, buf, i));
+		AN(NTP_Packet_Unpack(np->rx_pkt, buf, len_rx));
 		np->rx_pkt->ts_rx = t2;
 
 		/* Ignore packets which are not replies to our packet */

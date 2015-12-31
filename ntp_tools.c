@@ -175,7 +175,7 @@ NTP_Tool_Scan(struct ntp_packet *pkt, const char *buf)
 	pkt->ntp_mode = (enum ntp_mode)u_fields[2];
 	pkt->ntp_stratum = (uint8_t)u_fields[3];
 	pkt->ntp_poll = (uint8_t)u_fields[4];
-	pkt->ntp_precision = (int8_t)floor(d_fields[0]);
+	pkt->ntp_precision = (int8_t)lround(floor(d_fields[0]));
 	TS_Double(&pkt->ntp_delay, d_fields[1]);
 	TS_Double(&pkt->ntp_dispersion, d_fields[2]);
 	Be32enc(pkt->ntp_refid, u_fields[5]);

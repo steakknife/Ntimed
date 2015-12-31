@@ -90,10 +90,17 @@ putv(struct ocx *ocx, enum ocx_chan chan, const char *fmt, va_list ap)
 
 	va_copy(ap2, ap);
 	AZ(ocx);
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wformat-nonliteral"
+#endif
 	if (dst != NULL)
 		(void)vfprintf(dst, fmt, ap);
 	if (chan == OCX_DIAG)
 		vsyslog(LOG_ERR, fmt, ap2);
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 	va_end(ap2);
 }
 

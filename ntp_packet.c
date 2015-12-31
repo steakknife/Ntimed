@@ -63,11 +63,16 @@
 #include "ntp.h"
 #include "ntimed_endian.h"
 
+/* Extract upper +msbs+ MOST significant bits from x */
+#define msbs(x, msbs) ((x) >> (8*sizeof(x) - (msbs)))
+/* Extract lower +lsbs+ LEASTsignificant bits from x */
+#define lsbs(x, lsbs) (((x) << (8*sizeof(x) - (lsbs))) >> (8*sizeof(x) - (lsbs)))
 /*
  * Seconds between 1900 (NTP epoch) and 1970 (UNIX epoch).
  * 17 is the number of leapdays.
  */
 #define NTP_UNIX        (((1970U - 1900U) * 365U + 17U) * 24U * 60U * 60U)
+
 
 /**********************************************************************
  * Picking a NTP packet apart in a safe, byte-order agnostic manner
@@ -133,24 +138,23 @@ NTP_Packet_Unpack(struct ntp_packet *np, void *ptr, ssize_t len)
 static void
 ts_2ntp32(uint8_t *dst, const struct timestamp *ts)
 {
-
 	CHECK_OBJ_NOTNULL(ts, TIMESTAMP_MAGIC);
-	assert(ts->sec < 65536);
-	Be16enc(dst, (uint16_t)ts->sec);
-	Be16enc(dst + 2, ts->frac >> 48ULL);
+	assert(ts->sec < UINT16_MAX);
+	Be16enc(dst, lsbs(ts->sec, 16));
+	Be16enc(dst + 2, msbs(ts->frac, 16));
 }
 
 static void
 ts_2ntp64(uint8_t *dst, const struct timestamp *ts)
 {
-
 	CHECK_OBJ_NOTNULL(ts, TIMESTAMP_MAGIC);
-	Be32enc(dst, ts->sec + NTP_UNIX);
-	Be32enc(dst + 4, ts->frac >> 32ULL);
+	assert(ts->sec < UINT32_MAX);
+	Be32enc(dst, lsbs(ts->sec + NTP_UNIX, 32));
+	Be32enc(dst + 4, msbs(ts->frac, 32));
 }
 
 size_t
-NTP_Packet_Pack(void *ptr, ssize_t len, struct ntp_packet *np)
+NTP_Packet_Pack(void *ptr, size_t len, struct ntp_packet *np)
 {
 	uint8_t *pbuf = ptr;
 
@@ -160,11 +164,9 @@ NTP_Packet_Pack(void *ptr, ssize_t len, struct ntp_packet *np)
 	assert(np->ntp_version < 8);
 	assert(np->ntp_stratum < 15);
 
-	pbuf[0] = (uint8_t)np->ntp_leap;
-	pbuf[0] <<= 3;
-	pbuf[0] |= np->ntp_version;
-	pbuf[0] <<= 3;
-	pbuf[0] |= (uint8_t)np->ntp_mode;
+	pbuf[0] = (uint8_t)(lsbs(np->ntp_leap, 2) << 6)
+	        | (uint8_t)(lsbs(np->ntp_version, 3) << 3)
+	        | (uint8_t)(lsbs(np->ntp_mode, 3));
 	pbuf[1] = np->ntp_stratum;
 	pbuf[2] = np->ntp_poll;
 	pbuf[3] = (uint8_t)np->ntp_precision;

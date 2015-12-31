@@ -34,6 +34,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include "ntimed.h"
 
@@ -65,13 +66,11 @@ ts_fixstorage(struct timestamp *storage)
 /**********************************************************************/
 
 struct timestamp *
-TS_Nanosec(struct timestamp *storage, int64_t sec, int64_t nsec)
+TS_Nanosec(struct timestamp *storage, uint64_t sec, uint64_t nsec)
 {
 
 	storage = ts_fixstorage(storage);
 
-	assert(sec >= 0);
-	assert(nsec >= 0);
 	assert(nsec < 1000000000);
 	storage->sec = (uint64_t)sec;
 	storage->frac = (uint32_t)nsec * NANO_FRAC;
@@ -87,9 +86,9 @@ TS_Double(struct timestamp *storage, double d)
 	assert(d >= 0.0);
 	storage = ts_fixstorage(storage);
 
-	storage->sec += (uint64_t)floor(d);
+	storage->sec += (uint64_t)lround(floor(d));
 	d -= floor(d);
-	storage->frac = (uint64_t)ldexp(d, 64);
+	storage->frac = (uint64_t)lround(floor(ldexp(d, 64)));
 	return (storage);
 }
 
@@ -104,7 +103,7 @@ TS_Add(struct timestamp *ts, double dt)
 	dt += ldexp(ts->frac, -64);
 	di = floor(dt);
 	ts->sec += (uint64_t)di;
-	ts->frac = (uint64_t)ldexp(dt - di, 64);
+	ts->frac = (uint64_t)lround(floor(ldexp(dt - di, 64)));
 }
 
 /**********************************************************************/
@@ -144,7 +143,7 @@ TS_Format(char *buf, size_t len, const struct timestamp *ts)
 {
 	CHECK_OBJ_NOTNULL(ts, TIMESTAMP_MAGIC);
 	uint64_t x, y;
-	int i;
+	size_t i;
 
 	/* XXX: Nanosecond precision is enough for everybody. */
 	x = ts->sec;
@@ -153,8 +152,8 @@ TS_Format(char *buf, size_t len, const struct timestamp *ts)
 		y -= 1000000000ULL;
 		x += 1;
 	}
-	i = snprintf(buf, len, "%jd.%09jd", (intmax_t)x, (intmax_t)y);
-	assert(i < (int)len);
+	i = (size_t)snprintf(buf, len, "%"PRId64".%09"PRId64, x, y);
+	assert(i < len);
 }
 
 /**********************************************************************

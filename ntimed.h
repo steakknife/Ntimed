@@ -107,7 +107,7 @@ void Time_Unix_Passive(void);
 /* time_stuff.c -- Timebase infrastructure ****************************/
 
 struct timestamp {
-	unsigned	magic;
+	uint32_t	magic;
 #define TIMESTAMP_MAGIC	0x344cd213
 	uint64_t	sec;		// Really:  time_t
 	uint64_t	frac;
@@ -127,7 +127,7 @@ extern tb_adjust_f *TB_Adjust;
 
 void TS_Add(struct timestamp *ts, double dt);
 struct timestamp *TS_Nanosec(struct timestamp *storage,
-    int64_t sec, int64_t nsec);
+    uint64_t sec, uint64_t nsec);
 
 struct timestamp *TS_Double(struct timestamp *storage, double);
 double TS_Diff(const struct timestamp *t1, const struct timestamp *t2);
@@ -169,7 +169,7 @@ typedef void combine_f(struct ocx *, const struct combiner *,
     double trust, double low, double mid, double high);
 
 struct combiner {
-	unsigned	magic;
+	uint32_t	magic;
 #define COMBINER_MAGIC	0xab2b239c
 
 	combine_f	*func;

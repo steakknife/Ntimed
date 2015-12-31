@@ -31,6 +31,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <inttypes.h>
 
 #include "ntimed.h"
 #include "ntp.h"
@@ -44,14 +45,14 @@
 /**********************************************************************/
 
 struct sim_file {
-	unsigned		magic;
+	uint32_t		magic;
 #define SIM_FILE_MAGIC		0x7f847bd0
 	char			*filename;
 	FILE			*input;
 	unsigned		n_peer;
 	struct ntp_peerset	*npl;
 	struct timestamp	when;
-	unsigned		t0;
+	uint64_t		t0;
 };
 
 static void
@@ -111,7 +112,7 @@ simfile_readline(struct ocx *ocx, struct todolist *tdl, void *priv)
 	struct sim_file *sf;
 	char buf[BUFSIZ], *p;
 	struct timestamp t0;
-	unsigned u1, u2;
+	uint64_t u1, u2;
 	double dt;
 
 	AN(tdl);
@@ -132,7 +133,7 @@ simfile_readline(struct ocx *ocx, struct todolist *tdl, void *priv)
 			*p = '\0';
 
 		if (!strncmp(buf, "Now ", 4)) {
-			if (sscanf(buf, "Now %u.%u", &u1, &u2) != 2)
+			if (sscanf(buf, "Now %"SCNu64".%"SCNu64, &u1, &u2) != 2)
 				Fail(ocx, 0, "Bad 'Now' line (%s)", buf);
 			if (sf->t0 == 0)
 				sf->t0 = u1 - t0.sec;
@@ -265,7 +266,6 @@ main_sim_client(int argc, char *const *argv)
 			Fail(NULL, 0,
 			    "Usage %s [-s simfile] [-p params] [-t tracefile]"
 			    " [-B when,freq,phase]", argv[0]);
-			break;
 		}
 	}
 	// argc -= optind;

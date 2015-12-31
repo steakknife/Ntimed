@@ -36,7 +36,7 @@
 #include "udp.h"
 
 struct udp_socket {
-	unsigned		magic;
+	uint32_t		magic;
 #define UDP_SOCKET_MAGIC	0x302a563f
 
 	int			fd4;

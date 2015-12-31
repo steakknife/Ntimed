@@ -39,7 +39,7 @@
 #include "ntimed.h"
 
 struct todo {
-	unsigned		magic;
+	uint32_t		magic;
 #define TODO_MAGIC		0x5279009a
 	TAILQ_ENTRY(todo)	list;
 
@@ -52,7 +52,7 @@ struct todo {
 };
 
 struct todolist {
-	unsigned		magic;
+	uint32_t		magic;
 #define TODOLIST_MAGIC		0x7db66255
 	TAILQ_HEAD(,todo)	todolist;
 };

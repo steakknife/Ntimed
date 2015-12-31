@@ -91,7 +91,6 @@ main_client(int argc, char *const *argv)
 			Fail(NULL, 0,
 			    "Usage %s [-p param] [-t tracefile] servers...",
 			    argv[0]);
-			break;
 		}
 	}
 	argc -= optind;

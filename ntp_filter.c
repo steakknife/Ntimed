@@ -41,7 +41,7 @@
 #undef PARAM_NTP_FILTER
 
 struct ntp_filter {
-	unsigned		magic;
+	uint32_t		magic;
 #define NTP_FILTER_MAGIC	0xf7b7032d
 
 	double			lo, mid, hi;

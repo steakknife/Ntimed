@@ -56,7 +56,7 @@ enum ntp_state {
 /* ntp_packet.c -- [De]Serialisation **********************************/
 
 struct ntp_packet {
-	unsigned		magic;
+	uint32_t		magic;
 #define NTP_PACKET_MAGIC	0x78b7f0be
 
 	enum ntp_leap		ntp_leap;
@@ -78,7 +78,7 @@ struct ntp_packet {
 
 struct ntp_packet *NTP_Packet_Unpack(struct ntp_packet *dst, void *ptr,
     ssize_t len);
-size_t NTP_Packet_Pack(void *ptr, ssize_t len, struct ntp_packet *);
+size_t NTP_Packet_Pack(void *ptr, size_t len, struct ntp_packet *);
 
 /* ntp_tools.c -- Handy tools *****************************************/
 
@@ -97,7 +97,7 @@ void NF_Init(void);
 
 
 struct ntp_peer {
-	unsigned			magic;
+	uint32_t			magic;
 #define NTP_PEER_MAGIC			0xbf0740a0
 	char				*hostname;
 	char				*ip;

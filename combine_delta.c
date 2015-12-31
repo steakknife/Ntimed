@@ -57,7 +57,7 @@ struct cd_stat {
 };
 
 struct cd_source {
-	unsigned			magic;
+	uint32_t			magic;
 #define CD_SOURCE_MAGIC			0x2799775c
 	TAILQ_ENTRY(cd_source)		list;
 
@@ -69,7 +69,7 @@ struct cd_source {
 };
 
 struct combine_delta {
-	unsigned			magic;
+	uint32_t			magic;
 #define COMBINE_DELTA_MAGIC		0x8dc5030c
 
 	unsigned			nsrc;

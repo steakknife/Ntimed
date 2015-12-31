@@ -130,7 +130,7 @@ st_kern_pll(struct ocx *ocx, struct todolist *tdl, void *priv)
  */
 
 struct st_bump {
-	unsigned		magic;
+	uint32_t		magic;
 #define ST_BUMP_MAGIC		0xc8981be3
 	double			bfreq;
 	double			bphase;

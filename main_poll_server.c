@@ -124,7 +124,6 @@ main_poll_server(int argc, char *const *argv)
 			Fail(NULL, 0,
 			    "Usage %s [-d duration] [-m monitor] "
 			    "[-t tracefile] server...", argv[0]);
-			break;
 		}
 	}
 	argc -= optind;

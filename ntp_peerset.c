@@ -48,7 +48,7 @@
 #include "ntp.h"
 
 struct ntp_group {
-	unsigned			magic;
+	uint32_t			magic;
 #define NTP_GROUP_MAGIC			0xdd5f58de
 	TAILQ_ENTRY(ntp_group)		list;
 
@@ -57,7 +57,7 @@ struct ntp_group {
 };
 
 struct ntp_peerset {
-	unsigned			magic;
+	uint32_t			magic;
 #define NTP_PEERSET_MAGIC		0x0bf873d0
 
 	TAILQ_HEAD(,ntp_peer)		head;
